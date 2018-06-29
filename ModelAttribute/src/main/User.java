@@ -1,9 +1,28 @@
 package main;
 
+import java.math.BigInteger;
+
 public class User {
+    private BigInteger id;
     private String name;
     private String password;
-    private Address address;
+
+    public User() {
+    }
+
+    public User(BigInteger id, String name, String password) {
+        this.id = id;
+        this.name = name;
+        this.password = password;
+    }
+
+    public BigInteger getId() {
+        return id;
+    }
+
+    public void setId(BigInteger id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -21,20 +40,12 @@ public class User {
         this.password = password;
     }
 
-    public Address getAddress() {
-        return address;
-    }
-
-    public void setAddress(Address address) {
-        this.address = address;
-    }
-
     @Override
     public String toString() {
         return "User{" +
-                "name='" + name + '\'' +
+                "id=" + id +
+                ", name='" + name + '\'' +
                 ", password='" + password + '\'' +
-                ", address=" + address +
                 '}';
     }
 }
