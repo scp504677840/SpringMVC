@@ -1,0 +1,125 @@
+package main.controller;
+
+import main.entities.User;
+import main.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+@Controller
+public class UserHandler {
+
+    @Autowired
+    private UserService userService;
+    /*
+    HttpMessageConverter<T>：将请求信息转化并绑定到处理方法的入参中或将响应结果转为对应类型的响应信息。
+    1.@RequestBody：接收请求信息
+    2.@ResponseBody：返回响应信息
+    3.HttpEntity<T>：方法入参
+    4.ResponseEntity<T>：方法返回值
+     */
+
+    /**
+     * 返回Json
+     * <p>
+     * 1.加入jar包
+     * - 方式一：加入gson-2.8.5.jar
+     * - 方式二：加入jackson-annotations-2.9.6.jar、jackson-core-2.9.6.jar、jackson-databind-2.9.6.jar
+     * 上面两个方式择其一即可。
+     * 2.书写Controller，在方法上加上@ResponseBody注解。
+     *
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/users")
+    public List<User> listUser() {
+        System.out.println("call listUser");
+        List<User> users = userService.listUser();
+        System.out.println("size: " + users.size());
+        users.forEach(System.out::println);
+        return users;
+    }
+
+    /**
+     * 打印上传的文本文件
+     *
+     * @param body 内容
+     * @return 返回结果
+     */
+    @ResponseBody
+    @RequestMapping("/upload")
+    public String upload(@RequestBody String body) {
+        System.out.println(body);
+        return "success";
+    }
+
+    /**
+     * 简易下载
+     *
+     * @param session HttpSession放在这里就是为了获取ServletContext
+     * @return 回显结果
+     */
+    @RequestMapping("/download")
+    public ResponseEntity<byte[]> download(HttpSession session) {
+        ServletContext servletContext = session.getServletContext();
+        InputStream in;
+        ResponseEntity<byte[]> re = null;
+        try {
+            in = servletContext.getResourceAsStream("test.txt");
+            byte[] body = new byte[in.available()];
+            in.read(body);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment;filename=abc.txt");
+            HttpStatus status = HttpStatus.OK;
+            re = new ResponseEntity<>(body, headers, status);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return re;
+    }
+
+    /**
+     * HttpEntity
+     *
+     * @param body 请求体
+     * @return 回显结果
+     */
+    @ResponseBody
+    @RequestMapping("/httpEntity")
+    public String httpEntity(HttpEntity<byte[]> body) {
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream("/Users/admin/Documents/Java/Lab/web/httpEntity.txt");
+            out.write(body.getBody());
+            System.out.println(body.getBody().length);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return "ok";
+    }
+
+}
